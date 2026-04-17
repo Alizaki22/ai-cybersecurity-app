@@ -1,14 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Shield, AlertTriangle, ShieldCheck, Search, Info, CheckCircle2, History, Activity, Award, GraduationCap, XCircle, ChevronRight, Mail, Download } from 'lucide-react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import {
+  Shield,
+  AlertTriangle,
+  ShieldCheck,
+  Search,
+  Info,
+  CheckCircle2,
+  History,
+  Activity,
+  Award,
+  GraduationCap,
+  XCircle,
+  ChevronRight,
+  Mail,
+  Download,
+} from "lucide-react";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 // ── Google Font injection ──────────────────────────────────────────
-const fontLink = document.createElement('link');
-fontLink.href = 'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap';
-fontLink.rel = 'stylesheet';
+const fontLink = document.createElement("link");
+fontLink.href =
+  "https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap";
+fontLink.rel = "stylesheet";
 document.head.appendChild(fontLink);
 
 // ── CSS variables & global styles ────────────────────────────────
@@ -471,7 +487,7 @@ const globalStyles = `
 `;
 
 // Inject styles
-const styleTag = document.createElement('style');
+const styleTag = document.createElement("style");
 styleTag.textContent = globalStyles;
 document.head.appendChild(styleTag);
 
@@ -481,68 +497,88 @@ const TRAINING_SCENARIOS = [
     id: 1,
     sender: "IT Support <admin-update@company-secure.net>",
     subject: "URGENT: Required Password Reset",
-    content: "Dear Employee,\n\nOur security system detected suspicious login attempts on your account. Your password will expire in 2 hours. Please click the link below to verify your identity and retain access to your account.\n\nhttp://login-company-portal.update-security.com\n\nThank you,\nIT Support",
+    content:
+      "Dear Employee,\n\nOur security system detected suspicious login attempts on your account. Your password will expire in 2 hours. Please click the link below to verify your identity and retain access to your account.\n\nhttp://login-company-portal.update-security.com\n\nThank you,\nIT Support",
     correctType: "Phishing",
-    explanation: "This is a classic phishing email. Notice the urgency ('expire in 2 hours'), the suspicious sender domain ('company-secure.net'), and the link that does not match a real internal portal."
+    explanation:
+      "This is a classic phishing email. Notice the urgency ('expire in 2 hours'), the suspicious sender domain ('company-secure.net'), and the link that does not match a real internal portal.",
   },
   {
     id: 2,
     sender: "HR Department <hr@yourcompany.com>",
     subject: "Updated Holiday Schedule 2026",
-    content: "Hi Team,\n\nPlease review the updated holiday schedule for 2026. Let your manager know if you have any questions.\n\nBest,\nHuman Resources",
+    content:
+      "Hi Team,\n\nPlease review the updated holiday schedule for 2026. Let your manager know if you have any questions.\n\nBest,\nHuman Resources",
     correctType: "Safe",
-    explanation: "This is a standard internal communication. The sender email matches the company domain, there is no urgent request for sensitive information, and no suspicious links are provided."
+    explanation:
+      "This is a standard internal communication. The sender email matches the company domain, there is no urgent request for sensitive information, and no suspicious links are provided.",
   },
   {
     id: 3,
     sender: "CEO <ceo.executive.urgent@gmail.com>",
     subject: "Quick Favor Needed",
-    content: "Are you at your desk right now? I'm in a meeting and need you to purchase 5 Apple gift cards ($100 each) for a client presentation. I'll reimburse you by end of day. Reply ASAP.",
+    content:
+      "Are you at your desk right now? I'm in a meeting and need you to purchase 5 Apple gift cards ($100 each) for a client presentation. I'll reimburse you by end of day. Reply ASAP.",
     correctType: "Social Engineering",
-    explanation: "This is a targeted social engineering attack (CEO Fraud). The attacker uses a free email provider (gmail.com), creates a false sense of authority and urgency, and asks for an unusual financial transaction (gift cards)."
+    explanation:
+      "This is a targeted social engineering attack (CEO Fraud). The attacker uses a free email provider (gmail.com), creates a false sense of authority and urgency, and asks for an unusual financial transaction (gift cards).",
   },
   {
     id: 4,
     sender: "Invoice Processing <billing@vendor-services.com>",
     subject: "Overdue Invoice #4492 - Action Required",
-    content: "Hello,\n\nYour account is severely past due. Please download and review the attached 'Invoice_4492.pdf.exe' immediately and process payment to avoid service suspension.\n\nRegards,\nBilling Dept",
+    content:
+      "Hello,\n\nYour account is severely past due. Please download and review the attached 'Invoice_4492.pdf.exe' immediately and process payment to avoid service suspension.\n\nRegards,\nBilling Dept",
     correctType: "Malware",
-    explanation: "This is a malware delivery attempt. The attachment has a double extension ('.pdf.exe'), meaning it is an executable program disguised as a PDF. Clicking it would likely install malware."
-  }
+    explanation:
+      "This is a malware delivery attempt. The attachment has a double extension ('.pdf.exe'), meaning it is an executable program disguised as a PDF. Clicking it would likely install malware.",
+  },
 ];
 
 // ── HELPERS ───────────────────────────────────────────────────────
 const getRiskClass = (severity) => {
   switch (severity?.toLowerCase()) {
-    case 'high': return 'risk-badge risk-high';
-    case 'medium': return 'risk-badge risk-medium';
-    case 'low': return 'risk-badge risk-low';
-    default: return 'risk-badge risk-default';
+    case "high":
+      return "risk-badge risk-high";
+    case "medium":
+      return "risk-badge risk-medium";
+    case "low":
+      return "risk-badge risk-low";
+    default:
+      return "risk-badge risk-default";
   }
 };
 
 const getRiskIcon = (severity) => {
   switch (severity?.toLowerCase()) {
-    case 'high': return <AlertTriangle style={{ width: 14, height: 14 }} />;
-    case 'medium': return <AlertTriangle style={{ width: 14, height: 14 }} />;
-    case 'low': return <ShieldCheck style={{ width: 14, height: 14 }} />;
-    default: return <Info style={{ width: 14, height: 14 }} />;
+    case "high":
+      return <AlertTriangle style={{ width: 14, height: 14 }} />;
+    case "medium":
+      return <AlertTriangle style={{ width: 14, height: 14 }} />;
+    case "low":
+      return <ShieldCheck style={{ width: 14, height: 14 }} />;
+    default:
+      return <Info style={{ width: 14, height: 14 }} />;
   }
 };
 
 const getDotColor = (severity) => {
   switch (severity?.toLowerCase()) {
-    case 'high': return 'var(--red)';
-    case 'medium': return 'var(--amber)';
-    case 'low': return 'var(--green)';
-    default: return 'var(--muted)';
+    case "high":
+      return "var(--red)";
+    case "medium":
+      return "var(--amber)";
+    case "low":
+      return "var(--green)";
+    default:
+      return "var(--muted)";
   }
 };
 
 // ── COMPONENT ─────────────────────────────────────────────────────
 function App() {
-  const [activeTab, setActiveTab] = useState('analyzer');
-  const [text, setText] = useState('');
+  const [activeTab, setActiveTab] = useState("analyzer");
+  const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -551,7 +587,7 @@ function App() {
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   const [awarenessScore, setAwarenessScore] = useState(() => {
-    const saved = localStorage.getItem('awarenessScore');
+    const saved = localStorage.getItem("awarenessScore");
     return saved ? parseInt(saved, 10) : 0;
   });
 
@@ -560,35 +596,43 @@ function App() {
   const [showTrainingResult, setShowTrainingResult] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('awarenessScore', awarenessScore.toString());
+    localStorage.setItem("awarenessScore", awarenessScore.toString());
   }, [awarenessScore]);
 
   const fetchHistory = async () => {
     setLoadingHistory(true);
     try {
-      const response = await axios.get('/api/analyze/history');
+      const response = await axios.get("/api/analyze/history");
       setHistoryData(response.data);
     } catch (err) {
-      console.error('Failed to fetch history', err);
+      console.error("Failed to fetch history", err);
     } finally {
       setLoadingHistory(false);
     }
   };
 
   useEffect(() => {
-    if (activeTab === 'history') fetchHistory();
+    if (activeTab === "history") fetchHistory();
   }, [activeTab]);
 
   const handleAnalyze = async () => {
-    if (!text.trim()) { setError('Please enter some text to analyze.'); return; }
-    setLoading(true); setError(null); setResult(null);
+    if (!text.trim()) {
+      setError("Please enter some text to analyze.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setResult(null);
     try {
-      const response = await axios.post('/api/analyze', { text });
+      const response = await axios.post("/api/analyze", { text });
       setResult(response.data);
-      setAwarenessScore(prev => prev + 10);
+      setAwarenessScore((prev) => prev + 10);
       fetchHistory();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to analyze text. Ensure backend is running.');
+      setError(
+        err.response?.data?.error ||
+          "Failed to analyze text. Ensure backend is running.",
+      );
     } finally {
       setLoading(false);
     }
@@ -598,7 +642,7 @@ function App() {
     setUserAnswer(selectedType);
     setShowTrainingResult(true);
     if (selectedType === TRAINING_SCENARIOS[currentScenarioIndex].correctType) {
-      setAwarenessScore(prev => prev + 25);
+      setAwarenessScore((prev) => prev + 25);
     }
   };
 
@@ -612,70 +656,103 @@ function App() {
   const isCorrect = userAnswer === currentScenario.correctType;
 
   const getCategoryData = () => {
-    const counts = { 'Phishing': 0, 'Malware': 0, 'Safe': 0, 'Social Engineering': 0 };
-    historyData.forEach(item => {
+    const counts = {
+      Phishing: 0,
+      Malware: 0,
+      Safe: 0,
+      "Social Engineering": 0,
+    };
+    historyData.forEach((item) => {
       if (counts[item.type] !== undefined) counts[item.type]++;
       else counts[item.type] = 1;
     });
-    return Object.keys(counts).map(key => ({ name: key, value: counts[key] })).filter(d => d.value > 0);
+    return Object.keys(counts)
+      .map((key) => ({ name: key, value: counts[key] }))
+      .filter((d) => d.value > 0);
   };
-  
+
   const COLORS = {
-    'Phishing': '#ffb83d',
-    'Malware': '#ff3d5a',
-    'Social Engineering': '#00c2ff',
-    'Safe': '#00e5a0'
+    Phishing: "#ffb83d",
+    Malware: "#ff3d5a",
+    "Social Engineering": "#00c2ff",
+    Safe: "#00e5a0",
   };
 
   const exportPDF = async () => {
-    const reportElement = document.getElementById('report-container');
+    const reportElement = document.getElementById("report-container");
     if (!reportElement) return;
-    
+
     try {
-      const canvas = await html2canvas(reportElement, { scale: 2, useCORS: true, backgroundColor: '#080c14' });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const canvas = await html2canvas(reportElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#080c14",
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save('CyberSecurity_Awareness_Report.pdf');
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save("CyberSecurity_Awareness_Report.pdf");
     } catch (err) {
       console.error("PDF Export failed", err);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh' }}>
-
+    <div style={{ minHeight: "100vh" }}>
       {/* ── NAV ──────────────────────────────────────────── */}
       <nav className="nav">
         <div className="nav-inner">
-          <div className="logo" onClick={() => setActiveTab('analyzer')}>
+          <div className="logo" onClick={() => setActiveTab("analyzer")}>
             <div className="logo-icon">
-              <Shield style={{ width: 20, height: 20, color: '#fff' }} />
+              <Shield style={{ width: 20, height: 20, color: "#fff" }} />
             </div>
-            <span className="logo-text">Cy<span>Sec</span> AI</span>
+            <span className="logo-text">
+              Cy<span>Sec</span> AI
+            </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div className="score-chip" style={{ display: window.innerWidth < 480 ? 'none' : 'flex' }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div
+              className="score-chip"
+              style={{ display: window.innerWidth < 480 ? "none" : "flex" }}
+            >
               <Award style={{ width: 14, height: 14 }} />
               {awarenessScore} pts
             </div>
             <div className="nav-tabs">
               {[
-                { id: 'analyzer', icon: <Activity style={{ width: 15, height: 15 }} />, label: 'Analyzer' },
-                { id: 'history', icon: <History style={{ width: 15, height: 15 }} />, label: 'History' },
-                { id: 'training', icon: <GraduationCap style={{ width: 15, height: 15 }} />, label: 'Training' },
-              ].map(tab => (
+                {
+                  id: "analyzer",
+                  icon: <Activity style={{ width: 15, height: 15 }} />,
+                  label: "Analyzer",
+                },
+                {
+                  id: "history",
+                  icon: <History style={{ width: 15, height: 15 }} />,
+                  label: "History",
+                },
+                {
+                  id: "training",
+                  icon: <GraduationCap style={{ width: 15, height: 15 }} />,
+                  label: "Training",
+                },
+              ].map((tab) => (
                 <button
                   key={tab.id}
-                  className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
+                  className={`nav-tab ${activeTab === tab.id ? "active" : ""}`}
                   onClick={() => setActiveTab(tab.id)}
                 >
                   {tab.icon}
-                  <span style={{ display: window.innerWidth < 560 ? 'none' : 'inline' }}>{tab.label}</span>
+                  <span
+                    style={{
+                      display: window.innerWidth < 560 ? "none" : "inline",
+                    }}
+                  >
+                    {tab.label}
+                  </span>
                 </button>
               ))}
             </div>
@@ -684,26 +761,49 @@ function App() {
       </nav>
 
       {/* ── ANALYZER ─────────────────────────────────────── */}
-      {activeTab === 'analyzer' && (
+      {activeTab === "analyzer" && (
         <main className="page fade-up">
           <div style={{ marginBottom: 48 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              <span style={{
-                fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 700,
-                letterSpacing: '0.12em', color: 'var(--accent)',
-                background: 'rgba(0,194,255,0.08)', border: '1px solid rgba(0,194,255,0.2)',
-                padding: '3px 10px', borderRadius: 4
-              }}>THREAT INTELLIGENCE</span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                marginBottom: 14,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.12em",
+                  color: "var(--accent)",
+                  background: "rgba(0,194,255,0.08)",
+                  border: "1px solid rgba(0,194,255,0.2)",
+                  padding: "3px 10px",
+                  borderRadius: 4,
+                }}
+              >
+                THREAT INTELLIGENCE
+              </span>
             </div>
-            <h1 className="page-title">Cyber Threat<br /><span className="accent">Analyzer</span></h1>
+            <h1 className="page-title">
+              Cyber Threat
+              <br />
+              <span className="accent">Analyzer</span>
+            </h1>
             <p className="page-sub" style={{ maxWidth: 520 }}>
-              Paste suspicious emails, messages, or text to detect phishing, malware,
-              and social engineering in real time.
+              Paste suspicious emails, messages, or text to detect phishing,
+              malware, and social engineering in real time.
             </p>
           </div>
 
           <div className="card" style={{ marginBottom: 24 }}>
-            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div
+              className="card-body"
+              style={{ display: "flex", flexDirection: "column", gap: 16 }}
+            >
               <label className="input-label" htmlFor="threat-input">
                 ▸ Message Content
               </label>
@@ -711,22 +811,32 @@ function App() {
                 id="threat-input"
                 className="threat-input"
                 rows={7}
-                placeholder={"E.g., 'URGENT: Your account will be suspended in 24 hours. Click here to verify…'"}
+                placeholder={
+                  "E.g., 'URGENT: Your account will be suspended in 24 hours. Click here to verify…'"
+                }
                 value={text}
                 onChange={(e) => setText(e.target.value)}
               />
               {error && (
                 <div className="banner-error">
-                  <AlertTriangle style={{ width: 15, height: 15, flexShrink: 0 }} />
+                  <AlertTriangle
+                    style={{ width: 15, height: 15, flexShrink: 0 }}
+                  />
                   {error}
                 </div>
               )}
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button className="btn-primary" onClick={handleAnalyze} disabled={loading}>
-                  {loading
-                    ? <div className="spinner spin-anim" />
-                    : <Search style={{ width: 16, height: 16 }} />}
-                  {loading ? 'Analyzing…' : 'Analyze Threat'}
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  className="btn-primary"
+                  onClick={handleAnalyze}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <div className="spinner spin-anim" />
+                  ) : (
+                    <Search style={{ width: 16, height: 16 }} />
+                  )}
+                  {loading ? "Analyzing…" : "Analyze Threat"}
                 </button>
               </div>
             </div>
@@ -735,7 +845,15 @@ function App() {
           {result && (
             <div className="card slide-in">
               <div className="card-header">
-                <span style={{ fontFamily: 'var(--mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)', letterSpacing: '0.04em' }}>
+                <span
+                  style={{
+                    fontFamily: "var(--mono)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "var(--text)",
+                    letterSpacing: "0.04em",
+                  }}
+                >
                   ANALYSIS RESULTS
                 </span>
                 <div className={getRiskClass(result.severity)}>
@@ -744,7 +862,10 @@ function App() {
                 </div>
               </div>
 
-              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div
+                className="card-body"
+                style={{ display: "flex", flexDirection: "column", gap: 24 }}
+              >
                 <div className="result-meta">
                   <div className="meta-box">
                     <div className="meta-label">Threat Type</div>
@@ -764,7 +885,15 @@ function App() {
                   <div className="rec-grid">
                     {result.recommendations?.map((rec, idx) => (
                       <div key={idx} className="rec-item">
-                        <CheckCircle2 style={{ width: 16, height: 16, color: 'var(--accent2)', flexShrink: 0, marginTop: 1 }} />
+                        <CheckCircle2
+                          style={{
+                            width: 16,
+                            height: 16,
+                            color: "var(--accent2)",
+                            flexShrink: 0,
+                            marginTop: 1,
+                          }}
+                        />
                         {rec}
                       </div>
                     ))}
@@ -777,12 +906,25 @@ function App() {
       )}
 
       {/* ── HISTORY ──────────────────────────────────────── */}
-      {activeTab === 'history' && (
+      {activeTab === "history" && (
         <main className="page fade-up">
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 40 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              marginBottom: 40,
+            }}
+          >
             <div>
-              <h1 className="page-title">Analysis<br /><span className="accent">History</span></h1>
-              <p className="page-sub">Previously analyzed texts and detected threats.</p>
+              <h1 className="page-title">
+                Analysis
+                <br />
+                <span className="accent">History</span>
+              </h1>
+              <p className="page-sub">
+                Previously analyzed texts and detected threats.
+              </p>
             </div>
             <button
               className="btn-ghost"
@@ -792,99 +934,227 @@ function App() {
             >
               <Activity
                 style={{ width: 14, height: 14 }}
-                className={loadingHistory ? 'spin-anim' : ''}
+                className={loadingHistory ? "spin-anim" : ""}
               />
               Refresh
             </button>
           </div>
 
           {loadingHistory && historyData.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 80, gap: 16 }}>
-              <div className="spinner spin-anim" style={{ width: 32, height: 32, borderWidth: 3, borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }} />
-              <span style={{ color: 'var(--muted)', fontFamily: 'var(--mono)', fontSize: 13 }}>Loading records…</span>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                paddingTop: 80,
+                gap: 16,
+              }}
+            >
+              <div
+                className="spinner spin-anim"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderWidth: 3,
+                  borderColor: "var(--border)",
+                  borderTopColor: "var(--accent)",
+                }}
+              />
+              <span
+                style={{
+                  color: "var(--muted)",
+                  fontFamily: "var(--mono)",
+                  fontSize: 13,
+                }}
+              >
+                Loading records…
+              </span>
             </div>
           ) : historyData.length === 0 ? (
             <div className="empty-state">
-              <History className="empty-icon" style={{ width: 48, height: 48 }} />
+              <History
+                className="empty-icon"
+                style={{ width: 48, height: 48 }}
+              />
               <div className="empty-title">No history yet</div>
-              <div className="empty-sub">Analyze some text to see it appear here.</div>
+              <div className="empty-sub">
+                Analyze some text to see it appear here.
+              </div>
               <button
                 className="btn-ghost"
                 style={{ marginTop: 24 }}
-                onClick={() => setActiveTab('analyzer')}
+                onClick={() => setActiveTab("analyzer")}
               >
                 Go to Analyzer
               </button>
             </div>
           ) : (
-            <div id="report-container" style={{ padding: '20px 0' }}>
+            <div id="report-container" style={{ padding: "20px 0" }}>
               {/* Dashboard Row */}
-              <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 600 ? '1fr' : '1fr 1fr', gap: 20, marginBottom: 30 }}>
-                 <div className="card">
-                    <div className="card-header">
-                       <span style={{ fontFamily: 'var(--mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>THREAT BREAKDOWN</span>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    window.innerWidth < 600 ? "1fr" : "1fr 1fr",
+                  gap: 20,
+                  marginBottom: 30,
+                }}
+              >
+                <div className="card">
+                  <div className="card-header">
+                    <span
+                      style={{
+                        fontFamily: "var(--mono)",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: "var(--text)",
+                      }}
+                    >
+                      THREAT BREAKDOWN
+                    </span>
+                  </div>
+                  <div
+                    className="card-body"
+                    style={{ height: 220, padding: 0 }}
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={getCategoryData()}
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {getCategoryData().map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[entry.name] || "#5a7a99"}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "var(--surface2)",
+                            borderColor: "var(--border)",
+                            color: "var(--text)",
+                            borderRadius: 8,
+                          }}
+                          itemStyle={{ color: "var(--text)" }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                <div className="card">
+                  <div className="card-header">
+                    <span
+                      style={{
+                        fontFamily: "var(--mono)",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: "var(--text)",
+                      }}
+                    >
+                      AWARENESS SUMMARY
+                    </span>
+                    <button
+                      className="btn-ghost"
+                      onClick={exportPDF}
+                      style={{ padding: "6px 12px", fontSize: 11 }}
+                    >
+                      <Download style={{ width: 14, height: 14 }} /> PDF Export
+                    </button>
+                  </div>
+                  <div
+                    className="card-body"
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 15,
+                    }}
+                  >
+                    <div
+                      className="meta-box"
+                      style={{
+                        background: "var(--surface2)",
+                        padding: "14px 20px",
+                      }}
+                    >
+                      <div className="meta-label">Total Analyzed</div>
+                      <div className="meta-value" style={{ fontSize: 24 }}>
+                        {historyData.length}
+                      </div>
                     </div>
-                    <div className="card-body" style={{ height: 220, padding: 0 }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie data={getCategoryData()} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                            {getCategoryData().map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[entry.name] || '#5a7a99'} />
-                            ))}
-                          </Pie>
-                          <Tooltip contentStyle={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)', borderRadius: 8 }} itemStyle={{ color: 'var(--text)' }} />
-                        </PieChart>
-                      </ResponsiveContainer>
+                    <div
+                      className="meta-box"
+                      style={{
+                        background: "var(--surface2)",
+                        padding: "14px 20px",
+                      }}
+                    >
+                      <div className="meta-label">Awareness Score</div>
+                      <div
+                        className="meta-value"
+                        style={{ fontSize: 24, color: "var(--amber)" }}
+                      >
+                        {awarenessScore} pts
+                      </div>
                     </div>
-                 </div>
-                 
-                 <div className="card">
-                    <div className="card-header">
-                       <span style={{ fontFamily: 'var(--mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>AWARENESS SUMMARY</span>
-                       <button className="btn-ghost" onClick={exportPDF} style={{ padding: '6px 12px', fontSize: 11 }}>
-                         <Download style={{ width: 14, height: 14 }} /> PDF Export
-                       </button>
-                    </div>
-                    <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-                       <div className="meta-box" style={{ background: 'var(--surface2)', padding: '14px 20px' }}>
-                          <div className="meta-label">Total Analyzed</div>
-                          <div className="meta-value" style={{ fontSize: 24 }}>{historyData.length}</div>
-                       </div>
-                       <div className="meta-box" style={{ background: 'var(--surface2)', padding: '14px 20px' }}>
-                          <div className="meta-label">Awareness Score</div>
-                          <div className="meta-value" style={{ fontSize: 24, color: 'var(--amber)' }}>{awarenessScore} pts</div>
-                       </div>
-                    </div>
-                 </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="section-label" style={{ marginTop: 40, marginBottom: 20 }}>
+              <div
+                className="section-label"
+                style={{ marginTop: 40, marginBottom: 20 }}
+              >
                 <History style={{ width: 13, height: 13 }} />
                 Recent History
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+              >
                 {historyData.map((item) => (
-                <div key={item.id} className="history-item">
-                  <div
-                    className="history-dot"
-                    style={{ background: getDotColor(item.severity) }}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
-                      <div className={getRiskClass(item.severity)} style={{ fontSize: 10, padding: '2px 9px' }}>
-                        {item.severity?.toUpperCase()}
+                  <div key={item.id} className="history-item">
+                    <div
+                      className="history-dot"
+                      style={{ background: getDotColor(item.severity) }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          flexWrap: "wrap",
+                          marginBottom: 8,
+                        }}
+                      >
+                        <div
+                          className={getRiskClass(item.severity)}
+                          style={{ fontSize: 10, padding: "2px 9px" }}
+                        >
+                          {item.severity?.toUpperCase()}
+                        </div>
+                        <span className="history-type">{item.type}</span>
+                        <span
+                          className="history-time"
+                          style={{ marginLeft: "auto" }}
+                        >
+                          {new Date(item.timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                          {" · "}
+                          {new Date(item.timestamp).toLocaleDateString()}
+                        </span>
                       </div>
-                      <span className="history-type">{item.type}</span>
-                      <span className="history-time" style={{ marginLeft: 'auto' }}>
-                        {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        {' · '}
-                        {new Date(item.timestamp).toLocaleDateString()}
-                      </span>
+                      <div className="history-text">"{item.text}"</div>
                     </div>
-                    <div className="history-text">"{item.text}"</div>
                   </div>
-                </div>
                 ))}
               </div>
             </div>
@@ -893,32 +1163,69 @@ function App() {
       )}
 
       {/* ── TRAINING ─────────────────────────────────────── */}
-      {activeTab === 'training' && (
+      {activeTab === "training" && (
         <main className="page fade-up">
           <div style={{ marginBottom: 40 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              <span style={{
-                fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 700,
-                letterSpacing: '0.12em', color: 'var(--amber)',
-                background: 'rgba(255,184,61,0.08)', border: '1px solid rgba(255,184,61,0.2)',
-                padding: '3px 10px', borderRadius: 4
-              }}>SIMULATION MODE</span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                marginBottom: 14,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.12em",
+                  color: "var(--amber)",
+                  background: "rgba(255,184,61,0.08)",
+                  border: "1px solid rgba(255,184,61,0.2)",
+                  padding: "3px 10px",
+                  borderRadius: 4,
+                }}
+              >
+                SIMULATION MODE
+              </span>
             </div>
-            <h1 className="page-title">Phishing<br /><span className="accent">Simulation</span></h1>
-            <p className="page-sub">Classify these simulated emails and earn points for correct answers.</p>
+            <h1 className="page-title">
+              Phishing
+              <br />
+              <span className="accent">Simulation</span>
+            </h1>
+            <p className="page-sub">
+              Classify these simulated emails and earn points for correct
+              answers.
+            </p>
           </div>
 
           <div className="card">
             {/* Email header */}
             <div className="email-header">
-              <Mail style={{ width: 18, height: 18, color: 'var(--muted)', flexShrink: 0 }} />
+              <Mail
+                style={{
+                  width: 18,
+                  height: 18,
+                  color: "var(--muted)",
+                  flexShrink: 0,
+                }}
+              />
               <div style={{ flex: 1 }}>
-                <div className="email-row">From: <span>{currentScenario.sender}</span></div>
-                <div className="email-row" style={{ marginBottom: 0 }}>Subject: <span>{currentScenario.subject}</span></div>
+                <div className="email-row">
+                  From: <span>{currentScenario.sender}</span>
+                </div>
+                <div className="email-row" style={{ marginBottom: 0 }}>
+                  Subject: <span>{currentScenario.subject}</span>
+                </div>
               </div>
             </div>
 
-            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div
+              className="card-body"
+              style={{ display: "flex", flexDirection: "column", gap: 24 }}
+            >
               {/* Email body */}
               <div className="email-body">{currentScenario.content}</div>
 
@@ -927,34 +1234,67 @@ function App() {
                 <div>
                   <div className="section-label">Classify this email</div>
                   <div className="classify-grid">
-                    {['Safe', 'Phishing', 'Malware', 'Social Engineering'].map((type) => (
-                      <button
-                        key={type}
-                        className="classify-btn"
-                        onClick={() => handleTrainingAnswer(type)}
-                      >
-                        {type}
-                      </button>
-                    ))}
+                    {["Safe", "Phishing", "Malware", "Social Engineering"].map(
+                      (type) => (
+                        <button
+                          key={type}
+                          className="classify-btn"
+                          onClick={() => handleTrainingAnswer(type)}
+                        >
+                          {type}
+                        </button>
+                      ),
+                    )}
                   </div>
                 </div>
               ) : (
-                <div className="slide-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                  <div className={isCorrect ? 'result-correct' : 'result-wrong'}>
-                    {isCorrect
-                      ? <CheckCircle2 style={{ width: 28, height: 28, color: 'var(--green)', flexShrink: 0, marginTop: 2 }} />
-                      : <XCircle style={{ width: 28, height: 28, color: 'var(--red)', flexShrink: 0, marginTop: 2 }} />}
+                <div
+                  className="slide-in"
+                  style={{ display: "flex", flexDirection: "column", gap: 20 }}
+                >
+                  <div
+                    className={isCorrect ? "result-correct" : "result-wrong"}
+                  >
+                    {isCorrect ? (
+                      <CheckCircle2
+                        style={{
+                          width: 28,
+                          height: 28,
+                          color: "var(--green)",
+                          flexShrink: 0,
+                          marginTop: 2,
+                        }}
+                      />
+                    ) : (
+                      <XCircle
+                        style={{
+                          width: 28,
+                          height: 28,
+                          color: "var(--red)",
+                          flexShrink: 0,
+                          marginTop: 2,
+                        }}
+                      />
+                    )}
                     <div>
-                      <div className={isCorrect ? 'result-title-correct' : 'result-title-wrong'}>
+                      <div
+                        className={
+                          isCorrect
+                            ? "result-title-correct"
+                            : "result-title-wrong"
+                        }
+                      >
                         {isCorrect
-                          ? '✓ Correct — +25 points'
+                          ? "✓ Correct — +25 points"
                           : `✗ Incorrect — It was "${currentScenario.correctType}"`}
                       </div>
-                      <p className="result-expl">{currentScenario.explanation}</p>
+                      <p className="result-expl">
+                        {currentScenario.explanation}
+                      </p>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
                     <button className="btn-dark" onClick={nextScenario}>
                       Next Scenario
                       <ChevronRight style={{ width: 16, height: 16 }} />
@@ -970,7 +1310,9 @@ function App() {
             {TRAINING_SCENARIOS.map((_, idx) => (
               <div
                 key={idx}
-                className={idx === currentScenarioIndex ? 'dot-active' : 'dot-inactive'}
+                className={
+                  idx === currentScenarioIndex ? "dot-active" : "dot-inactive"
+                }
               />
             ))}
           </div>
@@ -978,9 +1320,6 @@ function App() {
       )}
     </div>
   );
-}
-
-export default App;
 }
 
 export default App;
