@@ -25,7 +25,7 @@ const fontLink = document.createElement("link");
 fontLink.href =
   "https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap";
 fontLink.rel = "stylesheet";
-document.head.appendChild(fontLink);
+// Will append in useEffect to avoid SSR/Vercel runtime issues
 
 // ── CSS variables & global styles ────────────────────────────────
 const globalStyles = `
@@ -489,7 +489,7 @@ const globalStyles = `
 // Inject styles
 const styleTag = document.createElement("style");
 styleTag.textContent = globalStyles;
-document.head.appendChild(styleTag);
+// Will append in useEffect
 
 // ── DATA (unchanged) ──────────────────────────────────────────────
 const TRAINING_SCENARIOS = [
@@ -577,6 +577,15 @@ const getDotColor = (severity) => {
 
 // ── COMPONENT ─────────────────────────────────────────────────────
 function App() {
+  console.log("App loaded"); // Temporary log to confirm rendering
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      if (!document.head.contains(fontLink)) document.head.appendChild(fontLink);
+      if (!document.head.contains(styleTag)) document.head.appendChild(styleTag);
+    }
+  }, []);
+
   const [activeTab, setActiveTab] = useState("analyzer");
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -587,8 +596,15 @@ function App() {
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   const [awarenessScore, setAwarenessScore] = useState(() => {
-    const saved = localStorage.getItem("awarenessScore");
-    return saved ? parseInt(saved, 10) : 0;
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        const saved = localStorage.getItem("awarenessScore");
+        return saved ? parseInt(saved, 10) : 0;
+      }
+    } catch (e) {
+      console.warn("localStorage access denied", e);
+    }
+    return 0;
   });
 
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
@@ -596,7 +612,13 @@ function App() {
   const [showTrainingResult, setShowTrainingResult] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("awarenessScore", awarenessScore.toString());
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        localStorage.setItem("awarenessScore", awarenessScore.toString());
+      }
+    } catch (e) {
+      console.warn("localStorage access denied", e);
+    }
   }, [awarenessScore]);
 
   const fetchHistory = async () => {
@@ -656,13 +678,14 @@ function App() {
   const isCorrect = userAnswer === currentScenario.correctType;
 
   const getCategoryData = () => {
+    const dataArray = Array.isArray(historyData) ? historyData : [];
     const counts = {
       Phishing: 0,
       Malware: 0,
       Safe: 0,
       "Social Engineering": 0,
     };
-    historyData.forEach((item) => {
+    dataArray.forEach((item) => {
       if (counts[item.type] !== undefined) counts[item.type]++;
       else counts[item.type] = 1;
     });
@@ -1017,33 +1040,37 @@ function App() {
                     className="card-body"
                     style={{ height: 220, padding: 0 }}
                   >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={getCategoryData()}
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {getCategoryData().map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[entry.name] || "#5a7a99"}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "var(--surface2)",
-                            borderColor: "var(--border)",
-                            color: "var(--text)",
-                            borderRadius: 8,
-                          }}
-                          itemStyle={{ color: "var(--text)" }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    {historyData && historyData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={getCategoryData()}
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            {getCategoryData().map((entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={COLORS[entry.name] || "#5a7a99"}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "var(--surface2)",
+                              borderColor: "var(--border)",
+                              color: "var(--text)",
+                              borderRadius: 8,
+                            }}
+                            itemStyle={{ color: "var(--text)" }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div style={{ padding: 20, textAlign: "center", color: "var(--muted)" }}>No data available</div>
+                    )}
                   </div>
                 </div>
 
