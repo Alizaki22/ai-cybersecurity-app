@@ -21,11 +21,6 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 // ── Google Font injection ──────────────────────────────────────────
-const fontLink = document.createElement("link");
-fontLink.href =
-  "https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap";
-fontLink.rel = "stylesheet";
-// Will append in useEffect to avoid SSR/Vercel runtime issues
 
 // ── CSS variables & global styles ────────────────────────────────
 const globalStyles = `
@@ -487,9 +482,6 @@ const globalStyles = `
 `;
 
 // Inject styles
-const styleTag = document.createElement("style");
-styleTag.textContent = globalStyles;
-// Will append in useEffect
 
 // ── DATA (unchanged) ──────────────────────────────────────────────
 const TRAINING_SCENARIOS = [
@@ -580,10 +572,27 @@ function App() {
   console.log("App loaded"); // Temporary log to confirm rendering
 
   useEffect(() => {
-    if (typeof document !== "undefined") {
-      if (!document.head.contains(fontLink)) document.head.appendChild(fontLink);
-      if (!document.head.contains(styleTag)) document.head.appendChild(styleTag);
+    const existing = document.querySelector(
+      'link[href*="fonts.googleapis.com"]'
+    );
+
+    if (!existing) {
+      const fontLink = document.createElement('link');
+      fontLink.href =
+        'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap';
+      fontLink.rel = 'stylesheet';
+      document.head.appendChild(fontLink);
     }
+  }, []);
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = globalStyles;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
   }, []);
 
   const [activeTab, setActiveTab] = useState("analyzer");
