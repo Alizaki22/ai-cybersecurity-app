@@ -633,7 +633,7 @@ function App() {
   const fetchHistory = async () => {
     setLoadingHistory(true);
     try {
-      const response = await axios.get("/api/analyze/history");
+      const response = await axios.get("https://ai-cybersecurity-app.onrender.com/api/analyze/history");
       setHistoryData(response.data);
     } catch (err) {
       console.error("Failed to fetch history", err);
@@ -655,7 +655,7 @@ function App() {
     setError(null);
     setResult(null);
     try {
-      const response = await axios.post("/api/analyze", { text });
+      const response = await axios.post("https://ai-cybersecurity-app.onrender.com/api/analyze", { text });
       setResult(response.data);
       setAwarenessScore((prev) => prev + 10);
       fetchHistory();
