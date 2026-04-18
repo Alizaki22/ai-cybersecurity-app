@@ -96,18 +96,21 @@ try {
   aiResponse = rawResponse;
 }
 
-    let parsedAnalysis;
+let parsedAnalysis;
 
-    try {
-      parsedAnalysis = JSON.parse(aiResponse);
-    } catch (err) {
-      parsedAnalysis = {
-        type: "Unknown",
-        severity: "Medium",
-        explanation: aiResponse,
-        recommendations: []
-      };
-    }
+try {
+  const jsonMatch = rawResponse.match(/\{[\s\S]*\}/);
+  const cleanJson = jsonMatch ? jsonMatch[0] : rawResponse;
+
+  parsedAnalysis = JSON.parse(cleanJson);
+} catch (err) {
+  parsedAnalysis = {
+    type: "Unknown",
+    severity: "Medium",
+    explanation: rawResponse,
+    recommendations: []
+  };
+}
 
     // Save to history
     const historyItem = {
