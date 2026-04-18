@@ -6,3 +6,4 @@ router.post('/', analyzeText);
 router.get('/history', getHistory);
 
 module.exports = router;
+

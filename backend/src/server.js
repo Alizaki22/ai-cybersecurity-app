@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 });
 
 // API Routes
-app.use('/analyze', analyzeRoutes);
+app.use('/api/analyze', analyzeRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;

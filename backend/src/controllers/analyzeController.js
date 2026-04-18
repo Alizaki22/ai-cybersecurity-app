@@ -1,10 +1,12 @@
 /**
  * Controller to handle text analysis for cybersecurity threats
  */
-const { OpenAI } = require('openai');
+console.log("API KEY:", process.env.GROQ_API_KEY);
+const Groq = require("groq-sdk");
 
-// Initialize OpenAI client
-const openai = new OpenAI();
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
 
 let history = [];
 
@@ -48,27 +50,64 @@ const analyzeText = async (req, res) => {
   }
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    console.log("🚀 CALLING GROQ...");
+
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
       messages: [
         { 
           role: "system", 
-          content: `You are a cybersecurity expert analyzing text for potential threats.
-          Please provide a JSON response with the following strict structure:
-          {
-            "type": "Phishing | Malware | Safe | Social Engineering",
-            "severity": "Low | Medium | High",
-            "explanation": "A concise explanation of why this text is classified this way.",
-            "recommendations": ["Recommendation 1", "Recommendation 2"]
-          }`
+          content: `You are a cybersecurity expert.
+Analyze the text and return ONLY valid JSON.
+
+Detect:
+- Phishing
+- Malware
+- Social Engineering
+- Safe
+
+Return in JSON format with:
+type, severity, explanation, recommendations
+
+Be strict and accurate.`
         },
         { role: "user", content: text }
       ],
-      response_format: { type: "json_object" },
-    });
+    }); // ✅ ONLY ONE closing
 
-    const aiResponse = completion.choices[0].message.content;
-    const parsedAnalysis = JSON.parse(aiResponse);
+    console.log("✅ GROQ API CALLED SUCCESSFULLY");
+    console.log("FULL RESPONSE:", completion);
+
+    const rawResponse = completion?.choices?.[0]?.message?.content || "";
+
+    if (!rawResponse || rawResponse.trim() === "") {
+  throw new Error("Empty response from Groq");
+}
+
+    // extract JSON from text
+    let aiResponse;
+
+try {
+  const start = rawResponse.indexOf("{");
+  const end = rawResponse.lastIndexOf("}") + 1;
+
+  aiResponse = rawResponse.substring(start, end);
+} catch {
+  aiResponse = rawResponse;
+}
+
+    let parsedAnalysis;
+
+    try {
+      parsedAnalysis = JSON.parse(aiResponse);
+    } catch (err) {
+      parsedAnalysis = {
+        type: "Unknown",
+        severity: "Medium",
+        explanation: aiResponse,
+        recommendations: []
+      };
+    }
 
     // Save to history
     const historyItem = {
@@ -78,23 +117,19 @@ const analyzeText = async (req, res) => {
       timestamp: new Date().toISOString()
     };
     
-    // Add to beginning of array
     history.unshift(historyItem);
-    
-    // Keep only the last 50 items
     if (history.length > 50) {
       history = history.slice(0, 50);
     }
 
-    res.json(parsedAnalysis);
+    return res.json(parsedAnalysis);
+
   } catch (error) {
-    console.error("OpenAI API Error:", error.message || error);
-    console.log("Using mock AI response as fallback.");
-    
-    // Generate intelligent mock response
+    console.error("❌ GROQ ERROR FULL:", error);
+    console.log("⚠️ USING MOCK");
+
     const mockAnalysis = generateMockResponse(text);
 
-    // Save mock response to history
     const historyItem = {
       id: Date.now().toString(),
       text: text.length > 50 ? text.substring(0, 50) + '...' : text,
@@ -107,8 +142,7 @@ const analyzeText = async (req, res) => {
       history = history.slice(0, 50);
     }
 
-    // Return the mock analysis successfully to the frontend
-    res.json(mockAnalysis);
+    return res.json(mockAnalysis);
   }
 };
 
