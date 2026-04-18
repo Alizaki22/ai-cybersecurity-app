@@ -85,17 +85,7 @@ Be strict and accurate.`
 }
 
     // extract JSON from text
-    let aiResponse;
-
-try {
-  const start = rawResponse.indexOf("{");
-  const end = rawResponse.lastIndexOf("}") + 1;
-
-  aiResponse = rawResponse.substring(start, end);
-} catch {
-  aiResponse = rawResponse;
-}
-
+    
 let parsedAnalysis;
 
 try {
@@ -111,7 +101,7 @@ try {
     recommendations: []
   };
 }
-
+    
     // Save to history
     const historyItem = {
       id: Date.now().toString(),
