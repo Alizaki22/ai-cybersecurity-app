@@ -1,201 +1,210 @@
-# 🔐 CySec AI – AI-Based Cybersecurity Threat Analyzer
+# CySec AI
 
-CySec AI is a full-stack web application that uses AI to analyze text messages and detect cybersecurity threats such as **phishing, social engineering, malware, and scams** in real time.
+CySec AI is a full-stack cybersecurity awareness app that helps people understand suspicious messages before they click, reply, or share sensitive information.
 
----
+The app combines a focused, professional dark interface with AI-assisted threat analysis and short phishing-awareness simulations. It classifies messages as **Safe**, **Phishing**, **Malware**, or **Social Engineering**, explains the signals it found, and provides practical next steps.
 
-## 🚀 Live Demo
+## Live demo
 
-* 🌐 Frontend (Vercel): https://ai-cybersecurity-app.vercel.app
-* ⚙ Backend (Render): https://ai-cybersecurity-app.onrender.com
+- Frontend: [ai-cybersecurity-app.vercel.app](https://ai-cybersecurity-app.vercel.app)
+- API: [ai-cybersecurity-app.onrender.com](https://ai-cybersecurity-app.onrender.com)
 
----
+## What visitors can do
 
-## 📌 Features
+- Analyze a suspicious email, message, or notification.
+- See a clear threat category, severity, explanation, and recommendations.
+- Review recent analyses in a lightweight history dashboard.
+- Practice with simulated phishing scenarios and earn awareness points.
+- Export the history dashboard as a PDF report.
 
-* 🧠 AI-powered threat detection using Groq API
-* 🔍 Detects:
+## System architecture
 
-  * Phishing attacks
-  * Social engineering attempts
-  * Malware-related messages
-  * Scam messages
-* 📊 Risk classification:
+```mermaid
+flowchart LR
+    User((Visitor)) --> UI[React + Vite frontend]
+    UI -->|POST /api/analyze| API[Express API]
+    UI -->|GET /api/analyze/history| API
 
-  * Low Risk
-  * Medium Risk
-  * High Risk
-* 📝 Detailed explanation for each analysis
-* 💡 Security recommendations
-* 📜 History tracking of analyzed messages
-* ⚡ Fast and responsive UI
+    subgraph Security[AI security boundary]
+        Limit[JSON body limit]
+        Rate[Per-client rate limiter]
+        Injection[Prompt-injection detector]
+        Redaction[Sensitive-data redaction]
+        Validation[Strict response validator]
+    end
 
----
+    API --> Limit --> Rate --> Injection
+    Injection --> Redaction
+    Redaction -->|sanitized text| Model[Groq Llama model]
+    Model -->|strict JSON| Validation
+    Validation -->|safe structured result| History[(In-memory history)]
+    History --> API
+    API --> UI
 
-## 🛠 Tech Stack
+    Injection -. rejected input .-> Error[400 security response]
+    Validation -. invalid model output .-> Fallback[Local heuristic fallback]
+    Fallback --> History
+```
+
+### Request flow
+
+1. The browser sends text to the Express API.
+2. The API enforces a request-size limit and per-client rate limit.
+3. Prompt-injection patterns are rejected before any model call.
+4. Sensitive values are redacted before the text leaves the backend or enters history.
+5. Groq receives the sanitized text inside an explicitly untrusted-data boundary.
+6. The model response is accepted only when it matches the allow-listed JSON contract.
+7. If the provider is unavailable or returns invalid data, a local heuristic classifier returns a safe structured fallback.
+
+## Security controls
+
+- Prompt-injection detection rejects common instruction-override, privileged-prompt probing, role-escalation, safety-bypass, and instruction-payload patterns.
+- Sensitive-data redaction covers email addresses, payment-card numbers, SSNs, JWTs, common API keys, bearer tokens, secret assignments, phone numbers, and IPv4 addresses.
+- AI responses are validated against fixed threat types, severities, field names, string lengths, and recommendation counts.
+- Analysis and history routes use an in-memory per-client rate limiter.
+- JSON request bodies are capped at 16 KB by default.
+- The frontend uses a restrained navy, slate, and blue visual system with separate amber, red, and green status colors for clear risk communication.
+
+## Tech stack
 
 ### Frontend
 
-* React.js (Vite)
-* Tailwind CSS
-* Axios
-* Recharts (for visualization)
+- React 19
+- Vite
+- Axios
+- Recharts
+- Lucide React
+- jsPDF and html2canvas
 
 ### Backend
 
-* Node.js
-* Express.js
-* Groq AI API
-* Helmet (security)
-* Morgan (logging)
-* CORS
+- Node.js
+- Express 5
+- Groq SDK
+- Helmet
+- Morgan
+- CORS
+- Node's built-in test runner
 
-### Deployment
+## Run locally
 
-* Frontend → Vercel
-* Backend → Render
-
----
-
-## ⚙️ Installation & Setup
-
-### 1️⃣ Clone Repository
+### 1. Clone and install
 
 ```bash
 git clone https://github.com/Alizaki22/ai-cybersecurity-app.git
 cd ai-cybersecurity-app
-```
 
----
-
-### 2️⃣ Backend Setup
-
-```bash
 cd backend
+npm install
+
+cd ../frontend
 npm install
 ```
 
-Create `.env` file:
+### 2. Configure the backend
+
+Create `backend/.env`:
 
 ```env
 GROQ_API_KEY=your_api_key_here
 PORT=5000
+JSON_BODY_LIMIT=16kb
+ANALYZE_RATE_LIMIT=30
+ANALYZE_RATE_WINDOW_MS=60000
 ```
 
-Run backend:
+The app still works without a Groq key by using the local heuristic fallback, which is useful for development and UI previews.
+
+### 3. Start both services
+
+In `backend`:
 
 ```bash
 npm run dev
 ```
 
----
-
-### 3️⃣ Frontend Setup
+In `frontend`:
 
 ```bash
-cd frontend
-npm install
 npm run dev
 ```
 
----
+The frontend expects the API at `http://localhost:5000`. Update the Axios base URL in `frontend/src/App.jsx` if your backend runs elsewhere.
 
-## 🌐 Environment Variables
+## API reference
 
-### Backend (.env)
+### `POST /api/analyze`
 
-* `GROQ_API_KEY` → Your Groq API key
-* `PORT` → Server port (Render sets automatically)
+Request:
 
----
+```json
+{
+  "text": "Your account needs an urgent password reset."
+}
+```
 
-## 🧠 How It Works
-
-1. User enters suspicious text
-2. Frontend sends request to backend
-3. Backend sends text to Groq AI
-4. AI returns structured JSON:
+Response:
 
 ```json
 {
   "type": "Phishing",
   "severity": "High",
-  "explanation": "...",
-  "recommendations": []
+  "explanation": "The message requests sensitive account action.",
+  "recommendations": [
+    "Do not click unknown links.",
+    "Verify the request through an independent channel."
+  ]
 }
 ```
 
-5. Backend parses response
-6. Frontend displays results in UI
+### `GET /api/analyze/history`
 
----
+Returns the most recent 50 sanitized analyses held in memory. History resets when the backend restarts.
 
-## 🧪 Example Test Cases
+## Project structure
 
-| Input                             | Output             |
-| --------------------------------- | ------------------ |
-| "Click this link to claim reward" | Phishing           |
-| "Send me your OTP"                | Social Engineering |
-| "Download this attachment"        | Malware            |
-| "Hello, how are you?"             | Safe               |
+```text
+backend/
+  src/
+    controllers/       Analysis and history handlers
+    routes/            Express API routes
+    security/          Injection, redaction, validation, and rate limiting
+    server.js          Express server entry point
+  test/                Security regression tests
+frontend/
+  src/App.jsx          Main application UI and theme
+  src/index.css        Global entry styles
+```
 
----
+## Scripts
 
-## ⚠️ Known Limitations
+| Directory | Command | Purpose |
+| --- | --- | --- |
+| `backend` | `npm start` | Start the API |
+| `backend` | `npm run dev` | Start the API with Nodemon |
+| `backend` | `npm test` | Run security regression tests |
+| `frontend` | `npm run dev` | Start the Vite development server |
+| `frontend` | `npm run build` | Create a production build |
+| `frontend` | `npm run lint` | Run ESLint |
 
-* Some edge cases may return **"Unknown"** if AI response format varies
-* Malware detection can be improved further
-* No authentication system (yet)
+## Current limitations
 
-## 🛡️ AI Security Controls
+- History is intentionally in memory and is not a durable database.
+- The local fallback is a lightweight heuristic and is not a replacement for a full security investigation.
+- Authentication and per-user history are not implemented yet.
+- URL reputation scanning and attachment analysis are outside the current scope.
 
-The backend applies the following controls at the analysis boundary:
+## Contributing
 
-* Prompt-injection attempts are rejected before any model request.
-* Email addresses, payment cards, tokens, secrets, phone numbers, and IP addresses are redacted before model requests and history storage.
-* Model responses must be strict JSON using the allow-listed threat types, severities, explanation, and recommendations fields.
-* Analysis and history endpoints use an in-memory per-client rate limiter. Configure `ANALYZE_RATE_LIMIT`, `ANALYZE_RATE_WINDOW_MS`, and `JSON_BODY_LIMIT` as needed.
-* Security regression tests run with `cd backend && npm test`.
+1. Create a branch from `main`.
+2. Keep secrets out of source control.
+3. Add or update tests for behavior changes.
+4. Run the relevant backend and frontend checks before opening a pull request.
 
----
+## License
 
-## 🔥 Future Improvements
+This project is open source and available under the MIT License.
 
-* ✅ Add user authentication
-* ✅ Store history in database (MongoDB)
-* ✅ Improve AI prompt for higher accuracy
-* ✅ Add confidence score (%)
-* ✅ Export reports (PDF)
-* ✅ Real-time URL scanning
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome!
-Feel free to fork the repo and submit a pull request.
-
----
-
-## 📜 License
-
-This project is open-source and available under the MIT License.
-
----
-
-## 🙌 Acknowledgements
-
-* Groq AI API
-* React & Node.js community
-
----
-
-## 👨‍💻 Author
+## Author
 
 **Aliyu Gambo Abubakar**
-
----
-
-## ⭐ Support
-
-If you like this project, give it a ⭐ on GitHub!

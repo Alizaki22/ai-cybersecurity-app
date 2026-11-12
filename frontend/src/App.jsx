@@ -25,18 +25,18 @@ import html2canvas from "html2canvas";
 // ── CSS variables & global styles ────────────────────────────────
 const globalStyles = `
   :root {
-    --bg:       #080c14;
-    --surface:  #0d1520;
-    --surface2: #111d2e;
-    --border:   #1a2d45;
-    --border2:  #243a55;
-    --accent:   #00c2ff;
-    --accent2:  #0077ff;
-    --red:      #ff3d5a;
-    --amber:    #ffb83d;
-    --green:    #00e5a0;
-    --text:     #e8edf5;
-    --muted:    #5a7a99;
+    --bg:       #08111f;
+    --surface:  #0f1b2d;
+    --surface2: #15263b;
+    --border:   #263b54;
+    --border2:  #3a5673;
+    --accent:   #65b6ff;
+    --accent2:  #2f7de1;
+    --red:      #ef6b7b;
+    --amber:    #e4b86a;
+    --green:    #67d7b1;
+    --text:     #f4f7fb;
+    --muted:    #8fa6bf;
     --mono:     'Space Mono', monospace;
     --sans:     'DM Sans', sans-serif;
   }
@@ -59,8 +59,8 @@ const globalStyles = `
       0deg,
       transparent,
       transparent 2px,
-      rgba(0,194,255,0.015) 2px,
-      rgba(0,194,255,0.015) 4px
+      rgba(101,182,255,0.012) 2px,
+      rgba(101,182,255,0.012) 4px
     );
     pointer-events: none;
     z-index: 9999;
@@ -72,8 +72,8 @@ const globalStyles = `
     position: fixed;
     inset: 0;
     background-image:
-      linear-gradient(rgba(0,194,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,194,255,0.04) 1px, transparent 1px);
+      linear-gradient(rgba(101,182,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(101,182,255,0.035) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
@@ -92,8 +92,8 @@ const globalStyles = `
     to   { opacity: 1; transform: translateY(0); }
   }
   @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 8px rgba(0,194,255,0.3); }
-    50%       { box-shadow: 0 0 20px rgba(0,194,255,0.6); }
+    0%, 100% { box-shadow: 0 0 8px rgba(101,182,255,0.22); }
+    50%       { box-shadow: 0 0 20px rgba(101,182,255,0.42); }
   }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
@@ -109,7 +109,7 @@ const globalStyles = `
   /* Nav */
   .nav {
     position: sticky; top: 0; z-index: 100;
-    background: rgba(8,12,20,0.92);
+    background: rgba(8,17,31,0.94);
     backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
   }
@@ -140,8 +140,8 @@ const globalStyles = `
 
   .score-chip {
     display: flex; align-items: center; gap: 6px;
-    background: rgba(255,184,61,0.08);
-    border: 1px solid rgba(255,184,61,0.25);
+    background: rgba(228,184,106,0.1);
+    border: 1px solid rgba(228,184,106,0.28);
     color: var(--amber);
     padding: 5px 14px;
     border-radius: 20px;
@@ -161,9 +161,9 @@ const globalStyles = `
   }
   .nav-tab:hover { background: var(--surface2); color: var(--text); }
   .nav-tab.active {
-    background: rgba(0,194,255,0.1);
+    background: rgba(101,182,255,0.1);
     color: var(--accent);
-    border: 1px solid rgba(0,194,255,0.2);
+    border: 1px solid rgba(101,182,255,0.24);
   }
 
   /* Page wrapper */
@@ -217,7 +217,7 @@ const globalStyles = `
   }
   .threat-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(0,194,255,0.1);
+    box-shadow: 0 0 0 3px rgba(101,182,255,0.12);
   }
   .threat-input::placeholder { color: var(--muted); }
   .input-label {
@@ -240,11 +240,11 @@ const globalStyles = `
     letter-spacing: 0.05em;
     border: none; border-radius: 10px; cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 4px 20px rgba(0,194,255,0.25);
+    box-shadow: 0 4px 20px rgba(47,125,225,0.25);
   }
   .btn-primary:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 6px 28px rgba(0,194,255,0.4);
+    box-shadow: 0 6px 28px rgba(47,125,225,0.38);
   }
   .btn-primary:active:not(:disabled) { transform: translateY(0) scale(0.98); }
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -278,10 +278,10 @@ const globalStyles = `
   .banner-error {
     display: flex; align-items: center; gap: 8px;
     padding: 12px 16px;
-    background: rgba(255,61,90,0.08);
-    border: 1px solid rgba(255,61,90,0.3);
+    background: rgba(239,107,123,0.09);
+    border: 1px solid rgba(239,107,123,0.3);
     border-radius: 10px;
-    color: #ff8fa0;
+    color: #f3a5b0;
     font-size: 13px; font-weight: 500;
   }
 
@@ -294,10 +294,10 @@ const globalStyles = `
     letter-spacing: 0.08em;
     border: 1px solid;
   }
-  .risk-high   { background: rgba(255,61,90,0.1);  border-color: rgba(255,61,90,0.35);  color: var(--red);   }
-  .risk-medium { background: rgba(255,184,61,0.1); border-color: rgba(255,184,61,0.35); color: var(--amber); }
-  .risk-low    { background: rgba(0,229,160,0.1);  border-color: rgba(0,229,160,0.35);  color: var(--green); }
-  .risk-default{ background: rgba(90,122,153,0.1); border-color: rgba(90,122,153,0.35); color: var(--muted); }
+  .risk-high   { background: rgba(239,107,123,0.1);  border-color: rgba(239,107,123,0.35);  color: var(--red);   }
+  .risk-medium { background: rgba(228,184,106,0.1); border-color: rgba(228,184,106,0.35); color: var(--amber); }
+  .risk-low    { background: rgba(103,215,177,0.1);  border-color: rgba(103,215,177,0.35);  color: var(--green); }
+  .risk-default{ background: rgba(143,166,191,0.1); border-color: rgba(143,166,191,0.35); color: var(--muted); }
 
   /* Result grid */
   .result-meta { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
@@ -325,8 +325,8 @@ const globalStyles = `
 
   .rec-item {
     display: flex; align-items: flex-start; gap: 12px;
-    background: rgba(0,119,255,0.05);
-    border: 1px solid rgba(0,119,255,0.15);
+    background: rgba(47,125,225,0.07);
+    border: 1px solid rgba(47,125,225,0.2);
     border-left: 3px solid var(--accent2);
     border-radius: 10px;
     padding: 14px 16px;
@@ -423,22 +423,22 @@ const globalStyles = `
   }
   .classify-btn:hover {
     border-color: var(--accent);
-    background: rgba(0,194,255,0.06);
+    background: rgba(101,182,255,0.07);
     color: var(--accent);
     transform: translateY(-2px);
   }
 
   .result-correct {
-    background: rgba(0,229,160,0.06);
-    border: 1px solid rgba(0,229,160,0.25);
+    background: rgba(103,215,177,0.07);
+    border: 1px solid rgba(103,215,177,0.28);
     border-left: 4px solid var(--green);
     border-radius: 14px;
     padding: 22px 24px;
     display: flex; gap: 16px;
   }
   .result-wrong {
-    background: rgba(255,61,90,0.06);
-    border: 1px solid rgba(255,61,90,0.25);
+    background: rgba(239,107,123,0.07);
+    border: 1px solid rgba(239,107,123,0.28);
     border-left: 4px solid var(--red);
     border-radius: 14px;
     padding: 22px 24px;
@@ -704,10 +704,10 @@ function App() {
   };
 
   const COLORS = {
-    Phishing: "#ffb83d",
-    Malware: "#ff3d5a",
-    "Social Engineering": "#00c2ff",
-    Safe: "#00e5a0",
+    Phishing: "#e4b86a",
+    Malware: "#ef6b7b",
+    "Social Engineering": "#65b6ff",
+    Safe: "#67d7b1",
   };
 
   const exportPDF = async () => {
@@ -718,7 +718,7 @@ function App() {
       const canvas = await html2canvas(reportElement, {
         scale: 2,
         useCORS: true,
-        backgroundColor: "#080c14",
+        backgroundColor: "#08111f",
       });
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
@@ -811,8 +811,8 @@ function App() {
                   fontWeight: 700,
                   letterSpacing: "0.12em",
                   color: "var(--accent)",
-                  background: "rgba(0,194,255,0.08)",
-                  border: "1px solid rgba(0,194,255,0.2)",
+                  background: "rgba(101,182,255,0.09)",
+                  border: "1px solid rgba(101,182,255,0.24)",
                   padding: "3px 10px",
                   borderRadius: 4,
                 }}
@@ -1062,7 +1062,7 @@ function App() {
                             {getCategoryData().map((entry, index) => (
                               <Cell
                                 key={`cell-${index}`}
-                                fill={COLORS[entry.name] || "#5a7a99"}
+                                fill={COLORS[entry.name] || "#8fa6bf"}
                               />
                             ))}
                           </Pie>
@@ -1217,8 +1217,8 @@ function App() {
                   fontWeight: 700,
                   letterSpacing: "0.12em",
                   color: "var(--amber)",
-                  background: "rgba(255,184,61,0.08)",
-                  border: "1px solid rgba(255,184,61,0.2)",
+                  background: "rgba(228,184,106,0.1)",
+                  border: "1px solid rgba(228,184,106,0.24)",
                   padding: "3px 10px",
                   borderRadius: 4,
                 }}
