@@ -4,6 +4,8 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900;
+    margin: 0;
+    background: #08111f;
+    color: #f4f7fb;
   }
 }
