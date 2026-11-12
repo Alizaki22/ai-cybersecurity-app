@@ -147,6 +147,16 @@ npm run dev
 * Malware detection can be improved further
 * No authentication system (yet)
 
+## 🛡️ AI Security Controls
+
+The backend applies the following controls at the analysis boundary:
+
+* Prompt-injection attempts are rejected before any model request.
+* Email addresses, payment cards, tokens, secrets, phone numbers, and IP addresses are redacted before model requests and history storage.
+* Model responses must be strict JSON using the allow-listed threat types, severities, explanation, and recommendations fields.
+* Analysis and history endpoints use an in-memory per-client rate limiter. Configure `ANALYZE_RATE_LIMIT`, `ANALYZE_RATE_WINDOW_MS`, and `JSON_BODY_LIMIT` as needed.
+* Security regression tests run with `cd backend && npm test`.
+
 ---
 
 ## 🔥 Future Improvements
