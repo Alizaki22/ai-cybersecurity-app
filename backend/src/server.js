@@ -7,7 +7,8 @@ const morgan = require('morgan');
 const app = express();
 
 // Middlewares
-app.use(express.json());
+app.set('trust proxy', false);
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '16kb' }));
 app.use(cors({
   origin: "*",
 }));
